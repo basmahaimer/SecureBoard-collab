@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -8,45 +7,35 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\UserController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Routes API pour l'auth et l'accès sécurisé.
-| Breeze gère inscription, login, logout, reset password, verify email.
-|
-*/
-
-// Routes publiques
+// Auth
 Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
 Route::post('/reset-password', [NewPasswordController::class, 'store']);
 Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
-    ->middleware(['signed', 'throttle:6,1'])
+    ->middleware(['signed','throttle:6,1'])
     ->name('verification.verify');
 
-// Routes nécessitant auth
+// Routes protégées
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // Déconnexion
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
-    // Notification email
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
-    // Récupérer user connecté avec roles et permissions
-    Route::get('/user', function (Request $request) {
-        $user = $request->user()->load('roles.permissions'); // charge roles + permissions
-        return response()->json($user);
-    });
+    // Profil utilisateur connecté
+    Route::get('/user', [UserController::class, 'show']);
+    Route::put('/user', [UserController::class, 'updateProfile']);
 
-    // Liste de tous les utilisateurs (admin only)
-    Route::get('/users', function () {
-        return \App\Models\User::with('roles.permissions')->get();
-    })->middleware('role:admin'); // accessible uniquement aux admins
+    // CRUD Admin uniquement
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    });
 });
