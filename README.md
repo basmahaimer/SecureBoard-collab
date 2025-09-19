@@ -1,61 +1,98 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 SecureBoard - Modern Project Management Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
-## About Laravel
+**SecureBoard** est une application moderne de gestion de projets et d'utilisateurs, conçue pour optimiser les workflows d'équipe avec une architecture performante et sécurisée.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ✨ Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🔐 Authentication & Security
+- **Multi-role authentication** (User, Manager, Admin)
+- **JWT Token-based security** with Laravel Sanctum
+- **Role-based access control** with Laratrust
+- **Policies & Gates** for fine-grained permissions
+- **Secure password management** with Breeze
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 📊 Project Management
+- **Full CRUD operations** for projects
+- **Project assignment system** with user tracking
+- **Real-time status updates** (Pending, In Progress, Completed)
+- **Advanced filtering** by status and assignment
+- **Ownership-based permissions**
 
-## Learning Laravel
+### 👥 User Management
+- **Admin user management** (Create, Read, Update, Delete)
+- **Role assignment system**
+- **Profile management** for all users
+- **Dashboard analytics** based on user role
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### ⚡ Performance Optimization
+- **Queue system** for asynchronous notifications
+- **Event-driven architecture** for better scalability
+- **Redis caching** for improved performance
+- **Optimized database queries** with eager loading
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 🛠 Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Backend
+- **Laravel 10** - PHP Framework
+- **Laravel Breeze** - Authentication scaffolding
+- **Laravel Sanctum** - API Authentication
+- **Laratrust** - Roles & Permissions management
+- **Redis** - Queue and Cache driver
+- **MySQL** - Database
 
-## Laravel Sponsors
+### Frontend
+- **React 18** - User Interface
+- **Axios** - HTTP Client
+- **React Router** - Navigation
+- **Context API** - State management
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📦 Installation
 
-### Premium Partners
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js 16+
+- MySQL 8.0+
+- Redis Server
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Backend Setup
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/secureboard.git
+cd secureboard
 
-## Contributing
+# Install PHP dependencies
+composer install
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Setup environment
+cp .env.example .env
+php artisan key:generate
 
-## Code of Conduct
+# Configure database in .env
+DB_DATABASE=secureboard
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Configure Redis for queues
+REDIS_CLIENT=predis
+QUEUE_CONNECTION=redis
 
-## Security Vulnerabilities
+# Run migrations and seeding
+php artisan migrate --seed
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Generate Laravel Sanctum keys
+php artisan sanctum:install
 
-## License
+# Link storage
+php artisan storage:link
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Start queue worker (in separate terminal)
+php artisan queue:work
+
+# Serve application
+php artisan serve
