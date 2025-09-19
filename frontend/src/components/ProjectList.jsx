@@ -1,3 +1,4 @@
+// frontend/src/pages/ProjectList.jsx
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthProvider";
@@ -35,8 +36,9 @@ export default function ProjectList() {
       <ul>
         {projects.map((project) => (
           <li key={project.id}>
-            {project.name} - {project.status}
-            {(user.roles[0].name === "admin" || user.id === project.user_id) && (
+            <strong>{project.title}</strong> - {project.status}
+            <p style={{ margin: "0.3rem 0" }}>{project.description}</p>
+            {(user?.roles?.[0]?.name === "admin" || user?.id === project.user_id) && (
               <>
                 {/* Actions selon rôle */}
                 <button>Editer</button>

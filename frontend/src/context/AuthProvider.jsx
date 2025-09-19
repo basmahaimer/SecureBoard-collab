@@ -5,17 +5,15 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(localStorage.getItem("auth_token"));
 
   const fetchUser = async () => {
     if (!token) return;
     try {
-      const res = await api.get("/user", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get("/user");
       setUser(res.data);
     } catch (err) {
-      console.log(err);
+      console.error("Erreur fetch user:", err);
       logout();
     }
   };
@@ -25,22 +23,22 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const loginUser = (newToken) => {
-    localStorage.setItem("token", newToken);
+    localStorage.setItem("auth_token", newToken);
     setToken(newToken);
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user");
     setToken(null);
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loginUser, logout }}>
+    <AuthContext.Provider value={{ user, token, loginUser, logout, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook pratique
 export const useAuth = () => useContext(AuthContext);

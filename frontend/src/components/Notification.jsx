@@ -1,15 +1,31 @@
-// frontend/src/components/Notification.jsx
 import React, { useEffect } from "react";
 
-export default function Notification({ type = "info", message, duration = 3000, onClose }) {
+export default function Notification({ type = "info", message, onClose }) {
   useEffect(() => {
-    const timer = setTimeout(() => onClose && onClose(), duration);
+    const timer = setTimeout(() => {
+      if (onClose) onClose();
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [onClose]);
 
   return (
-    <div className={`notification ${type}`}>
-      <i className="fas fa-info-circle"></i>
+    <div
+      className={`notification ${type}`}
+      style={{
+        position: "fixed",
+        top: "20px",
+        right: "20px",
+        padding: "10px 20px",
+        borderRadius: "8px",
+        color: "#fff",
+        backgroundColor:
+          type === "success"
+            ? "green"
+            : type === "error"
+            ? "red"
+            : "#333",
+      }}
+    >
       {message}
     </div>
   );

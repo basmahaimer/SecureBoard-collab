@@ -1,5 +1,5 @@
 <?php
-
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController; // ⭐ AJOUTEZ CET IMPORT
+use App\Http\Controllers\NotificationController;
+
 
 // Auth
 Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -56,4 +58,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
             'completed' => \App\Models\Project::where('status', 'completed')->count(),
         ]);
     })->middleware('role:admin,manager');
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications/unread', function (Request $request) {
+        return $request->user()->unreadNotifications;
+    });
+
+    Route::post('/notifications/{id}/read', function (Request $request, $id) {
+        $notification = $request->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+        return response()->json(['message' => 'Notification marquée comme lue']);
+    });
 });

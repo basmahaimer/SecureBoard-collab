@@ -4,98 +4,110 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserCreatedNotification;
 
 class UserController extends Controller
 {
     public function __construct()
     {
-        // Middleware : seules certaines actions sont réservées aux admins
-        $this->middleware('role:admin')->only(['index', 'store', 'update', 'destroy']);
+        $this->middleware('auth:sanctum');
+        $this->middleware('role:admin')->only(['index','store','update','destroy']);
     }
 
-    /**
-     * Affiche le profil de l'utilisateur connecté
-     */
     public function show(Request $request)
     {
-        return $request->user()->load('roles.permissions');
+        return $request->user()->load('roles');
     }
 
-    /**
-     * Mise à jour du profil connecté
-     */
-    public function updateProfile(Request $request)
-    {
-        $user = $request->user();
-
-        $request->validate([
-            'name'  => ['sometimes','string','max:255'],
-            'email' => ['sometimes','string','email','max:255','unique:users,email,'.$user->id],
-        ]);
-
-        $user->update($request->only(['name','email']));
-
-        return $user->load('roles.permissions');
-    }
-
-    /**
-     * Liste des utilisateurs (admin uniquement)
-     */
     public function index()
     {
-        return User::with('roles.permissions')->get();
+        return User::with('roles')->get();
     }
 
-    /**
-     * Création d’un utilisateur (admin uniquement)
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'name'     => ['required','string','max:255'],
-            'email'    => ['required','string','email','max:255','unique:users,email'],
-            'password' => ['required','confirmed','min:8'],
-            'role'     => ['required','string','in:admin,manager,user'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'password' => 'required|confirmed|min:8',
+                'role' => 'required|string|in:admin,manager,user',
+            ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        $role = Role::firstOrCreate(['name' => $request->role]);
-        $user->roles()->sync([$role->id]);
+            // 🔔 Assigner le rôle avec Laratrust
+            $user->addRole($validated['role']);
 
-        return $user->load('roles.permissions');
+            // 🔔 Notification vers tous les admins
+            $admins = User::whereHas('roles', function($query) {
+                $query->where('name', 'admin');
+            })->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new UserCreatedNotification($user));
+            }
+
+            return response()->json([
+                'message' => 'Utilisateur créé avec succès',
+                'user' => $user->load('roles')
+            ], 201);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erreur création utilisateur: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    /**
-     * Mise à jour d’un utilisateur (admin uniquement)
-     */
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'name'  => ['sometimes','string','max:255'],
-            'email' => ['sometimes','string','email','max:255','unique:users,email,'.$user->id],
-            'role'  => ['sometimes','string','in:admin,manager,user'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|string|email|max:255|unique:users,email,'.$user->id,
+                'role' => 'sometimes|string|in:admin,manager,user',
+            ]);
 
-        $user->update($request->only(['name','email']));
+            if (isset($validated['name']) || isset($validated['email'])) {
+                $user->update($request->only(['name', 'email']));
+            }
 
-        if ($request->has('role')) {
-            $role = Role::firstOrCreate(['name' => $request->role]);
-            $user->roles()->sync([$role->id]);
+            if (isset($validated['role'])) {
+                $user->syncRoles([$validated['role']]);
+            }
+
+            return response()->json([
+                'message' => 'Utilisateur mis à jour avec succès',
+                'user' => $user->load('roles')
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Erreur mise à jour utilisateur: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur serveur',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return $user->load('roles.permissions');
     }
 
-    /**
-     * Suppression d’un utilisateur (admin uniquement)
-     */
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {

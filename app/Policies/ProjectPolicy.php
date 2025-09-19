@@ -13,7 +13,8 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('admin') || $user->hasRole('manager');
+        // ✅ Tous les utilisateurs authentifiés peuvent voir la liste des projets
+        return true;
     }
 
     /**
@@ -21,7 +22,11 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->hasRole('admin') || $project->isOwnedBy($user);
+        // ✅ User peut voir le projet s'il en est le créateur, assigné, ou admin/manager
+        return $user->hasRole('admin') 
+            || $user->hasRole('manager')
+            || $project->user_id === $user->id
+            || $project->assigned_user_id === $user->id;
     }
 
     /**
@@ -37,7 +42,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->hasRole('admin') || $project->isOwnedBy($user);
+        return $user->hasRole('admin') || $project->user_id === $user->id;
     }
 
     /**
@@ -45,6 +50,6 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->hasRole('admin') || $project->isOwnedBy($user);
+        return $user->hasRole('admin') || $project->user_id === $user->id;
     }
 }

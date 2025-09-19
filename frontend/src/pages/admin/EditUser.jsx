@@ -1,7 +1,7 @@
 // frontend/src/pages/EditUser.jsx
 import React, { useState, useEffect } from "react";
-import api from "../api/axios";
-import Notification from "../components/Notification";
+import api from "../../api/axios";  // Changé de "../api/axios" à "../../api/axios"
+import Notification from "../../components/Notification";
 
 export default function EditUser({ userId, onUpdated }) {
   const [userData, setUserData] = useState({ name: "", email: "", roles: [] });
